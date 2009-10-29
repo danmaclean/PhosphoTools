@@ -59,3 +59,18 @@ sub next_pep{
 }
 
 
+=head1 NAME
+
+Peptide - a nascent class for peptide object
+
+=head1 AUTHOR
+
+Dan MacLean (dan.maclean@tsl.ac.uk)
+
+=head1 DESCRIPTION
+
+not sure about usefullness of object for peptide yet, so not finished
+
+=head1 METHODS
+
+none

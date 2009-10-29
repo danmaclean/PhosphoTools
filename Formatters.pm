@@ -170,3 +170,61 @@ sub expand {
 
 
 1;
+
+
+
+
+=head1 NAME
+
+Formatters - a module that includes code for writing in formats commonly used in proteomics
+
+=head1 AUTHOR
+
+Dan MacLean (dan.maclean@tsl.ac.uk)
+
+=head1 SYNOPSIS
+
+	use PhosphoTools::Formatters;
+	
+	my $mgf_out = Formatters::print_mgf(\%mgf);
+	print $mgf; #prints out an MGF format file
+
+=head1 DESCRIPTION
+
+The formatters module contains code for writing out various TSL and proteomics formats. Extra formats can be added on request. The module does not create objects like some of the other modules, rather its methods are accessed in the manner of subroutines in external files.
+
+=head1 METHODS
+
+=over
+
+=item make_format_string(phoscalc_score_string, best_guess_range)
+
+Allows you to create a nicely formatted 'best-guess' PhosCalc score based on all the scores for a peptide. The parameter 'phocalc_score_string'
+should be in a format that is internal to the standalone version of PhosCalc and some early text files. Thus this method is a bit esoteric and may
+not find general utility. Remains because at present it is doing no harm.
+
+=item print_mgf()
+
+Returns a string version of an MGF record, the mgf hash you provide it with can be one of those created automatically with the PhosphoTools::Parsers 
+get_mgf method. ALternatively you can populate one directly, create a hash with following keys:
+
+	TITLE CHARGE TOL TOLU SEQ COMP TAG ETAG ETAG SCANS RTINSECONDS INSTRUMENT IT_MODS PEPMASS SPECTRA_PEAKS
+
+Put the relevant information in the value for each key and the print_mgf method will print it out nice for you. You dont need to use all the keys for the
+code to work. Use as many as you see fit.
+
+	my %mgf;
+	$mgf{'TITLE'} = "A_PEPTIDE_RESULT";
+	$mgf{'CHARGE'} = '2+';
+	.
+	.
+	.
+	.
+
+	my $mgf_out = Formatters::print_mgf(\%mgf);
+	print $mgf_out; #prints out an MGF format file
+
+=back
+
+=head1 SEE ALSO
+PhosphoTools::Parsers;

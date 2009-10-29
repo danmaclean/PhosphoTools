@@ -867,3 +867,21 @@ sub get_pfamhit_id{
 				}
 				
 1;
+
+
+=head1 NAME
+
+PhosDB - a module of methods for interacting with the mySQL db of the rails proteomics webtool. 
+
+=head1 AUTHOR
+
+Dan MacLean (dan.maclean@tsl.ac.uk)
+
+=head1 DESCRIPTION
+
+Not really useable without the database itself so not documented. If anyone wants to build a proteomics db this may become useful.
+In which case talk to me.
+
+=head1 METHODS
+
+none

@@ -81,9 +81,8 @@ my $best_guess = shift;
 my $pep = $best_guess;
 my $pep_start = shift;
 my $pep_end = shift;
-#my $specific_residue = shift; ### if this is set will return phos posns only for one type of residue, options are S, T, Y and ALL
 
-#if (!$specific_residue or $specific_residue =~ m/all/i){
+
 $best_guess =~ s/\(/[/g;
 $best_guess =~ s/\)/]/g;
 $best_guess =~ s/\[s\]/s/gi;
@@ -97,12 +96,11 @@ my %phos_site_posns;
 			my $match = $`; #`
 			my $pos = length($match);
 			$best_guess =~ s/\[p//;
-#			$best_guess =~ s/\[//;
 			$best_guess =~ s/\]//;
-			#warn "added $pos\n";
+
 			$pos += $pep_start;
 
-			$phos_site_posns{'specific'}{$pos} = 1; 
+			$phos_site_posns{$pos} = 1; 
 			
 		}
 $pep =~ s/\(/[/g;
@@ -114,27 +112,45 @@ $pep =~ s/\[pT\]/T/gi;
 		while($pep =~ m/(\[)/g){
 		        my $match = $`; #`
 			my $pos = length($match);
-#			$best_guess =~ s/\[p//;
+
 			$pep =~ s/\[//;
 			$pep =~ s/\]//;
-			#warn "added $pos\n";
 			$pos += $pep_start;
 
-			$phos_site_posns{'ambiguous'}{$pos} = 1; 
+			$phos_site_posns{$pos} = 1; 
 			
 		    }
 
 return %phos_site_posns;
  }
+
 sub get_phossite_positions{
 
 my $protein = shift;
 my $best_guess = shift;
 my $pep_start = shift;
 my $pep_end = shift;
-#my $specific_residue = shift; ### if this is set will return phos posns only for one type of residue, options are S, T, Y and ALL
+my $type = shift;
 
-#if (!$specific_residue or $specific_residue =~ m/all/i){
+die unless $type;
+
+$best_guess =~ s/\(/[/g;
+		     $best_guess =~ s/\)/]/g;
+
+if ($type =~ m/d/i){
+## if we are looking at definitive sites only
+
+    $best_guess =~ s/\[(\w)\]/$1/g;
+
+
+}
+if ($type =~ m/a/i){
+   ## if we are looking at ambiguous sites only
+    $best_guess =~ s/\[p(\w)\]/$1/g;
+
+
+}
+
 $best_guess =~ s/\(/[/g;
 $best_guess =~ s/\)/]/g;
 $best_guess =~ s/\[p/[/g;
@@ -157,34 +173,6 @@ my %phos_site_posns;
 		
 
 return %phos_site_posns;
-
-#}
-#elsif ($specific_residue =~ m/s/i or $specific_residue =~ m/t/i or $specific_residue =~ m/y/i){
-
-#$specific_residue = uc($specific_residue);
-#$best_guess =~ s/\(/[/g;
-#$best_guess =~ s/\)/]/g;
-#$best_guess =~ s/\[p/[/g;
-#$best_guess =~ s/\[ox/[/g;
-#$best_guess =~ s/\[\*/\[/g;
-#my %phos_site_posns;
-
-#		while($best_guess =~ m/(\[$specific_residue)/gi){
-#			my $match = $`; #`
-#			my $pos = length($match);
-#			$best_guess =~ s/\[//;
-#			$best_guess =~ s/\]//;
-			#warn "added $pos\n";
-#			$pos += $pep_start;
-
-#			$phos_site_posns{$pos} = 1; 
-			
-#		}
-
-#return %phos_site_posns;
-#}
-
-#return -1;
 
 }
 
@@ -260,9 +248,105 @@ sub make_alignment{
 
 
 }
-
+sub get_motif_alignment_from_position{
+	my $seq = shift;
+	my $pos = shift;
+	my $s = $pos - 7;
+	substr($seq, $s, 13);
+}
 
 
 
 
 1;
+=head1 NAME
+
+Sequences - a module that includes code for dealing with sequences of different formats commonly used in proteomics
+
+=head1 AUTHOR
+
+Dan MacLean (dan.maclean@tsl.ac.uk)
+
+=head1 SYNOPSIS
+
+	use PhosphoTools::Sequences;
+
+	my $pep_mod = 'APEPTIDE[pS]EQUENCE';
+	my $cleaned_pep = Sequences::clean_up_sequence($pep_mod);
+	print $pep_mod; #prints APEPTIDESEQUENCE
+
+=head1 DESCRIPTION
+
+The Sequence module contains code for completing various tasks with peptide sequences.
+
+=head1 METHODS
+
+=over
+
+=item clean_up_sequence(annotated_peptide_sequence)
+
+Removes the phosphopeptide annotation from an annotated sequence
+
+	my $pep_mod = 'APEPTIDE[pS]EQUENCE';
+	my $cleaned_pep = Sequences::clean_up_sequence($pep_mod);
+	print $pep_mod; #prints APEPTIDESEQUENCE
+
+=item find_peptides_posn_on_protein(peptide, protein)
+
+When provided with a (cleaned) peptide and a protein sequence, returns the start and end position on the protein of the first exact match as an array.
+
+	my $pep = 'ROT';
+	my $protein = 'APROTEINSEQUENCE';
+	my @posns = Sequence::find_peptides_posn_on_protein($pep,$protein);
+	print $posns[0], " ", $posns[1]; #prints 3 5 
+
+=item get_residue_positions(residue, protein)
+
+When provided with a single letter amino acid and a protein, will return a hash with keys that are the numeric positions of the residue in that protein
+
+	my $res = 'E';
+	my $protein = 'APROTEINSEQUENCE
+	my %residue_positions = Sequence::get_residue_positions($res, $protein);
+	print keys %residue_positions; #prints 6, 10, 13 and 16 in no particular order
+
+=item get_phossite_positions(protein, annotated_peptide, start_on_prot, end_on_prot, type )
+
+When provided with an a protein, annotated peptide sequence, the position on the protein where the peptide starts and ends and a type of phosite this
+will return a hash of the phosite positions in the protein. 
+The type argument is the type of phossite to look at, either 'ambiguous' (use 'a') or definite (use 'd')
+
+	my $protein = 'APROTEINSEQUENCE';
+	my $anno_pep = '[pT]EIN[pS]EQ;
+	my $start = 5;
+	my $end = 12;
+	my %phossite_positions = Sequence::get_phossite_postions($protein, $anno_pep, $start, $end, 'd');
+	print keys %phossite_positions; # prints 5 and 9
+
+=item get_phossite_positions_specific_and_ambiguous()
+
+As for get_phossite_positions() but lacks the type argument, returns positions for all annotated phossites. 
+
+=item make_alignment(protein, annotated_peptide)
+
+Returns a hash of 13 aa long peptides drawn from the parent sequence of a peptide and aligned around with the phossite at the centre.
+if you give a set of phoscalc style probability scores it will generate the peptide alignments for all possible phossites over the 1e-06 arbitrary cutoff. 
+If you provide a best guess or phosphat formatted definitive format sequence ie PEP[pT]IDE then it will use just the definitive phos positions
+NB the [p character is diagnostic of the best guess or phosphat format, if your sequence lacks this the code will think it is phoscalc.
+
+	my $seq = 'AVERYLONGPROTEINSEQ;
+	my $ptm_line = O[pT]EIN; ## or phoscalc alternative
+	my %alignments = Sequence::make_alignments($seq, $ptm_line);
+	print keys %alignments; #prints ONGPROTEINSEQ
+
+=item get_motif_alignment_from_position(protein, position)
+
+Returns a single sub-sequence of 13 aas centered around a provided position, when provided with the protein	and position
+
+	my $seq = 'AVERYLONGPROTEINSEQ';
+	my $al = Sequence::make_alignments($seq, $pos);
+	print $al; ##prints ONGPROTEINSEQ
+
+=back
+
+=head1 SEE ALSO
+PhosphoTools::Formatters; PhosphoTools::Parsers; Bio::SeqIO;
