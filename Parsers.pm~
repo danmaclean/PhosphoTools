@@ -121,28 +121,7 @@ sub get_pfamhits{
 	return %pfams; 
 		
 }
-sub get_pfam24hits{
-	
-	my $pfams = shift;
-	open PFAMS, "<$pfams" || die "can't open PFAMS $pfams\n";
-	my %pfams; 
-	while (my $line = <PFAMS>){
-		chomp $line;
-		my @cell = split(/\s+/, $line);
-			my $accession = $cell[0];
-			my $start = $cell[1];
-			my $stop = $cell[2];
-			my $domainid = $cell[5];
-			my $name = $cell[6];
-			my $p = $cell[12];
-			my $hitcomp = $name .  ';' . $start . ';' . $stop . ';'  .$p;
-			$pfams{$accession}{$hitcomp}= 1 ;
-		}
-	close PFAMS;
-	
-	return %pfams; 
-		
-}
+
 
 sub get_proteins{
 my $sequence_file = shift;
